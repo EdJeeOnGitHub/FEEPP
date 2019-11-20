@@ -1,12 +1,9 @@
-# FEEPP
+# Replication Code for Field Experiments in Economics and Public Policy
+
 Open source replication code for studies found in https://dataverse.harvard.edu/dataverse/DFEEP.
 
 
-
-
-
-
-# Replication Results
+# Replication Summary
 
 
 ## Female Leadership Raises Aspirations and Educational Attainment for Girls: A Policy Experiment in India
