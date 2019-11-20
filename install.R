@@ -2,6 +2,7 @@
 packages_vector <- c(
   "AER",
   "broom",
-  "skimr"
+  "skimr",
+  "sandwich"
 )
 lapply(packages_vector, install.packages)
