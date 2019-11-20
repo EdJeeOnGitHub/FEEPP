@@ -24,7 +24,7 @@ Data DOI: https://doi.org/10.7910/DVN/O3UKFO
 
 ## Partnership Schools for Liberia
 
-Paper DOI: https://dx.doi.org/10.2139/ssrn.3062941
+Paper DOI: https://dx.doi.org/10.2139/ssrn.3062941  
 Data DOI: https://doi.org/10.7910/DVN/5OPIYU
 
 - [ ] Data fully available.
