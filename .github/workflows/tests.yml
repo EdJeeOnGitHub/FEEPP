@@ -1,0 +1,17 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: edjee/feepp-dev
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+      - name: Run Tests
+        run: Rscript tests/testthat/test_wings.R
+      - name: Run a one-line script
+        run: echo I think that's it!
