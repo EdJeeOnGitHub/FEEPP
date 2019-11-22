@@ -1,0 +1,20 @@
+name: WINGS Replicates
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: edjee/feepp-dev
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+      - name: Print pwd
+        run: echo $(pwd)
+      - name: Run Tests
+        working-directory: ./tests/testthat
+        run: Rscript test_wings.R
+      - name: Run a one-line script
+        run: echo "I think that's it!"
