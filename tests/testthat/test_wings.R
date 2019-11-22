@@ -6,8 +6,9 @@ library(testthat)
 
 
 table_3_col_2_df <- read_csv("../../results/wings/table_3_column_2.csv")
+table_3_col_3_df <- read_csv("../../results/wings/table_3_column_3.csv")
 
-reference_table <- tribble(
+table_3_col_2_reference_table <- tribble(
   ~outcome, ~estimate, ~SE,
   "Any nonfarm self-employment", 0.401, 0.03,
   "Started Enterprise", 0.487, 0.025,
@@ -25,7 +26,30 @@ reference_table <- tribble(
 )  
 
 
+table_3_col_3_reference_table <- tribble(
+  ~outcome, ~estimate, ~SE,
+  "Any nonfarm self-employment", 0.409, 0.033,
+  "Started Enterprise", 0.485, 0.025,
+  "Average Work Hours", 9.877, 1.794,
+  "Agri Average Work Hours", 4.002, 1.3,
+  "NonAgri Average Work Hours", 5.875, 0.916,  
+  "Average Hours Chores", 1.416, 1.203,
+  "Index of Income", 0.616, 0.08,
+  "Monthly Cash Earnings", 23.39, 4.607,
+  "Durable Consumption Assets",  0.384, 0.068,
+  "Non-Durable Consumption", 33.439, 5.227,
+  "Durable Assets (production)",  0.397, 0.058,
+  "Times Went Hungry", -0.084, 0.036,           
+  "Usual Meals per day", 0.078, 0.031         
+)  
+
 
 test_that("Table 3 Column 2 Replicates", {
-  expect_true(all_equal(table_3_col_2_df %>% filter(outcome %in% reference_table$outcome), reference_table, convert = TRUE, ignore_row_order = TRUE))
+  expect_true(all_equal(table_3_col_2_df %>% filter(outcome %in% table_3_col_2_reference_table$outcome), table_3_col_2_reference_table, convert = TRUE, ignore_row_order = TRUE))
+})
+
+
+test_that("Table 3 Column 3 Replicates", {
+  expect_true(all_equal(table_3_col_3_df %>% filter(outcome %in% table_3_col_3_reference_table$outcome), table_3_col_3_reference_table, convert = TRUE, ignore_row_order = TRUE))
+  
 })
