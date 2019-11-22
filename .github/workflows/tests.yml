@@ -11,7 +11,10 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@master
+      - name: Print pwd
+        run: echo pwd
       - name: Run Tests
-        run: Rscript tests/testthat/test_wings.R
+        working-directory: ./tests/testthat
+        run: Rscript test_wings.R
       - name: Run a one-line script
         run: echo I think that's it!
