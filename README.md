@@ -1,6 +1,6 @@
 # Replication Code for Field Experiments in Economics and Public Policy
 
-![](https://github.com/actions/EdJeeOnGitHub/FEEPP/.github/workflows/tests.yml/badge.svg)
+![](https://github.com/actions/EdJeeOnGitHub/FEEPP/.github/workflows/CI/badge.svg)
 
 Open source replication code for studies found in https://dataverse.harvard.edu/dataverse/DFEEP.
 
