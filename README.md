@@ -36,6 +36,8 @@ Data DOI: https://doi.org/10.7910/DVN/5OPIYU
 ## The Returns to Microenterprise Support among the  Ultrapoor: A Field Experiment in Postwar Uganda
 
 WIP 
+![](https://github.com/EdJeeOnGitHub/FEEPP/workflows/Wings%20Replicates/badge.svg)  
+
 
 Paper DOI: http://dx.doi.org/10.1257/app.20150023  
 Data DOI: https://doi.org/10.7910/DVN/QA0R1O
