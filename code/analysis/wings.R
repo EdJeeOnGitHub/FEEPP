@@ -3,10 +3,37 @@ library(tidyverse)
 library(sandwich)
 library(broom)
 library(testthat)
-wings_df <- read_dta("data/WINGS/Data/WINGS.dta")
 
 
+# Loading data
+wings_df <- read_dta("data/WINGS+Dataverse+Files/WINGS Dataverse Files/Data/WINGS.dta")
 
+if(nrow(wings_df) != 6630) {
+  stop("Observations missing")
+}
+
+if(ncol(wings_df) != 6190) {
+  stop("Columns missing")
+}
+
+# Table 3 outcome variables
+outcomes_T3 <- c("pettybiz_dum_p1e",
+                 "biznow_p1e",
+                 "igastart_p1e",
+                 "total_hrs7d_s2p99_p1e",
+                 "agri_hrs7d_s2p99_p1e",
+                 "nonagri_hrs7d_s2p99_p1e", 
+                 "chores_hrs7d_p99_p1e",
+                 "zero_employment_p1e", 
+                 "incomeindex_p1e",
+                 "total_profit4w_r_s2p99_p1e",
+                 "consdur_p1e",
+                 "consagg_p1ep99_r",
+                 "consaggpercap2_p1ep99_r",
+                 "proddur_p1e",
+                 "bedhungry_p1e",
+                 "meals_p1e")
+# Table 4 outcome variables
 outcomes_T4 <- c("feltfree_grant_p1e",
                  "granthholdgaveamt_p1e_r",
                  "grantcommgaveamt_p1e_r",
@@ -35,26 +62,7 @@ outcomes_T4 <- c("feltfree_grant_p1e",
                  "currloans_p1ep99_r",
                  "bizadvice_p1e",
                  "harvest_earnings_p1e")
-
-outcomes_T3 <- c("pettybiz_dum_p1e",
-                 "biznow_p1e",
-                 "igastart_p1e",
-                 "total_hrs7d_s2p99_p1e",
-                 "agri_hrs7d_s2p99_p1e",
-                 "nonagri_hrs7d_s2p99_p1e", 
-                 "chores_hrs7d_p99_p1e",
-                 "zero_employment_p1e", 
-                 "incomeindex_p1e",
-                 "total_profit4w_r_s2p99_p1e",
-                 "consdur_p1e",
-                 "consagg_p1ep99_r",
-                 "consaggpercap2_p1ep99_r",
-                 "proddur_p1e",
-                 "bedhungry_p1e",
-                 "meals_p1e")
-
-
-
+# Each row corresponds to each local in Stata .do file
 controls <- c("age_bas", "female", "hhsize_bas", "partner_bas", "onlyearner_bas", "biochildren_bas", "nonacholi_bas", # D
                  "stillenrolled_bas", "attainment_dup_p1e", "writingskills_bas", "speakengl_bas", "trainlength_bas", "stddigitrecall",# H
                  "pettybiz_dum_bas", "dugo1_hrs7d_p99_bas", "duge1_hrs7d_p99_bas", "casual_hrs7d_p99_bas",  "brew_hrs7d_p99_bas", "buy_hrs7d_p99_bas", "others_hrs7d_p99_bas", "chores_hrs7d_p99_bas", "zero_employment_bas", #E
@@ -69,11 +77,14 @@ controls <- c("age_bas", "female", "hhsize_bas", "partner_bas", "onlyearner_bas"
 
 
 
-subset_df <- wings_df %>% 
+
+
+# Generate dataset for table 3
+table_3_df <- wings_df %>% 
   select(outcomes_T3,
          sample_p1,
          found_p1e,
-         controls_LOL,
+         controls,
          siteid,
          assigned_p1,
          assigned_p1_gd) %>% 
@@ -81,21 +92,27 @@ subset_df <- wings_df %>%
   select(-sample_p1,
          -found_p1e)
 
-
-subset_df_long <- subset_df %>% 
+# Reshape to long
+table_3_long_df <- table_3_df %>% 
   mutate_at(vars(pettybiz_dum_p1e:meals_p1e), as.numeric) %>% 
   gather(outcome_key, 
          outcome_value,
          pettybiz_dum_p1e:meals_p1e)
-group_formula <- as.formula(paste0(paste("outcome_value", paste(controls_LOL, collapse=" + "), sep=" ~ "), "+ assigned_p1  + assigned_p1_gd - siteid"))
 
+# Create regression equations for each outcome
+group_formula <- as.formula(paste0(paste("outcome_value", paste(controls, collapse=" + "), sep=" ~ "), "+ assigned_p1  + assigned_p1_gd - siteid"))
 
-
-
+#' Fit Wings  Table 3 Column 2 regression
+#'
+#' @param dataset Table 3 data
+#' @param formula Regression equation
+#'
+#' @return Tidy fitted models.
 fit_function <- function(dataset,
                          formula){
   ols_model <- lm(data = dataset,
                   formula = formula)
+  # Cluster on siteid
   ols_SE <- vcovCL(ols_model,
                    cluster = ols_model$model$siteid) %>% 
     diag() %>% 
@@ -103,7 +120,7 @@ fit_function <- function(dataset,
     enframe() %>% 
     rename(term = name,
            SE = value)
-  
+  # Join back onto df
   tidy_ols <- ols_model %>% 
     tidy(quick = TRUE) %>% 
     inner_join(ols_SE,
@@ -114,11 +131,15 @@ fit_function <- function(dataset,
 }
 
 
-models <- map_df(outcomes_T3, ~ subset_df_long %>% 
+models <- map_df(outcomes_T3, ~table_3_long_df %>% 
                    filter(outcome_key == .x) %>% 
                    fit_function(dataset = .,
                                 formula = group_formula) %>% 
                    mutate(outcome = .x))
+
+
+
+
 
 
 model_temp_table <- models %>% 
@@ -146,29 +167,8 @@ model_temp_table <- models %>%
   mutate_if(is.numeric, round, 3)   
 
 
+# Write output to results
 
-## Tests ##
-# Table 3 Column 2
-
-reference_table <- tribble(
-  ~outcome, ~estimate, ~SE,
-  "Any nonfarm self-employment", 0.401, 0.03,
-  "Started Enterprise", 0.487, 0.025,
-  "Average Work Hours", 9.391, 1.608,
-  "Agri Average Work Hours", 3.496, 1.389,
-  "NonAgri Average Work Hours", 5.895, 0.893,  
-  "Average Hours Chores", 0.305, 1.013,
-  "Index of Income", 0.464, 0.068,
-  "Monthly Cash Earnings", 10.372, 3.443,
-  "Durable Consumption Assets",  0.327, 0.067,
-  "Non-Durable Consumption", 31.031, 5.010,
-  "Durable Assets (production)",  0.402, 0.064,
-  "Times Went Hungry", -0.098, 0.039,           
-  "Usual Meals per day", 0.057, 0.028         
-)  
+write_csv(model_temp_table, "results/wings/table_3_column_2.csv")
 
 
-
-test_that("Table 3 Column 2 Replicates", {
-  expect_true(all_equal(model_temp_table %>% filter(outcome %in% reference_table$outcome), reference_table, convert = TRUE, ignore_row_order = TRUE))
-})
