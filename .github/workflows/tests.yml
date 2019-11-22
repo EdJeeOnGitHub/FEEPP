@@ -12,9 +12,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@master
       - name: Print pwd
-        run: echo pwd
+        run: echo $(pwd)
       - name: Run Tests
         working-directory: ./tests/testthat
         run: Rscript test_wings.R
       - name: Run a one-line script
-        run: echo I think that's it!
+        run: echo "I think that's it!"
