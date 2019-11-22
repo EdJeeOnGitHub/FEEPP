@@ -3,8 +3,8 @@ library(tidyverse)
 library(sandwich)
 library(broom)
 library(testthat)
-
-
+# Whether to run extra bootstrapped explorations
+extra <- FALSE
 # Loading data
 wings_df <- read_dta("data/WINGS+Dataverse+Files/WINGS Dataverse Files/Data/WINGS.dta")
 
@@ -95,13 +95,14 @@ table_3_df <- wings_df %>%
 # Reshape to long
 table_3_long_df <- table_3_df %>% 
   mutate_at(vars(pettybiz_dum_p1e:meals_p1e), as.numeric) %>% 
+  mutate(col_3_treatment = assigned_p1_gd - assigned_p1) %>% 
   gather(outcome_key, 
          outcome_value,
          pettybiz_dum_p1e:meals_p1e)
 
 # Create regression equations for each outcome
-group_formula <- as.formula(paste0(paste("outcome_value", paste(controls, collapse=" + "), sep=" ~ "), "+ assigned_p1  + assigned_p1_gd - siteid"))
-
+col_2_group_formula <- as.formula(paste0(paste("outcome_value", paste(controls, collapse=" + "), sep=" ~ "), "+ assigned_p1  + assigned_p1_gd - siteid"))
+col_3_group_formula <- as.formula(paste0(paste("outcome_value", paste(controls, collapse=" + "), sep=" ~ "), "+ assigned_p1 + col_3_treatment - siteid"))
 #' Fit Wings  Table 3 Column 2 regression
 #'
 #' @param dataset Table 3 data
@@ -131,44 +132,96 @@ fit_function <- function(dataset,
 }
 
 
-models <- map_df(outcomes_T3, ~table_3_long_df %>% 
+table_3_col_2_models <- map_df(outcomes_T3, ~table_3_long_df %>% 
                    filter(outcome_key == .x) %>% 
                    fit_function(dataset = .,
-                                formula = group_formula) %>% 
+                                formula = col_2_group_formula) %>% 
                    mutate(outcome = .x))
 
 
+table_3_col_3_models <- map_df(outcomes_T3, ~table_3_long_df %>% 
+                                 filter(outcome_key == .x) %>% 
+                                 fit_function(dataset = .,
+                                              formula = col_3_group_formula) %>% 
+                                 mutate(outcome = .x))
 
 
-
-
-model_temp_table <- models %>% 
+recode_outcome_var <- function(df){
+  df <- df %>% 
+    mutate(outcome = factor(outcome),
+           outcome = fct_recode(outcome,
+                                "Any nonfarm self-employment"             = "biznow_p1e",
+                                "Started Enterprise"                    ="igastart_p1e",
+                                "Average Work Hours"                    ="total_hrs7d_s2p99_p1e",
+                                "Agri Average Work Hours"               ="agri_hrs7d_s2p99_p1e",
+                                "NonAgri Average Work Hours"            ="nonagri_hrs7d_s2p99_p1e",
+                                "Average Hours Chores"                  ="chores_hrs7d_p99_p1e",
+                                "Index of Income"                       ="incomeindex_p1e",
+                                "Monthly Cash Earnings"                 ="total_profit4w_r_s2p99_p1e",
+                                "Durable Consumption Assets"            ="consdur_p1e",
+                                "Non-Durable Consumption"               ="consagg_p1ep99_r",
+                                "Durable Assets (production)"           ="proddur_p1e",
+                                "Times Went Hungry"                     ="bedhungry_p1e",
+                                "Usual Meals per day"                   ="meals_p1e"))
+  return(df)
+}
+clean_table_3_col_2_models <- table_3_col_2_models %>% 
   filter(term == "assigned_p1") %>% 
   mutate(tstat = estimate/SE,
          pval = 2*pt(-abs(tstat), df = N)) %>% 
   select(outcome,
          estimate, 
-         SE) %>% 
-  mutate(outcome = factor(outcome),
-         outcome = fct_recode(outcome,
-                              "Any nonfarm self-employment"             = "biznow_p1e",
-                              "Started Enterprise"                    ="igastart_p1e",
-                              "Average Work Hours"                    ="total_hrs7d_s2p99_p1e",
-                              "Agri Average Work Hours"               ="agri_hrs7d_s2p99_p1e",
-                              "NonAgri Average Work Hours"            ="nonagri_hrs7d_s2p99_p1e",
-                              "Average Hours Chores"                  ="chores_hrs7d_p99_p1e",
-                              "Index of Income"                       ="incomeindex_p1e",
-                              "Monthly Cash Earnings"                 ="total_profit4w_r_s2p99_p1e",
-                              "Durable Consumption Assets"            ="consdur_p1e",
-                              "Non-Durable Consumption"               ="consagg_p1ep99_r",
-                              "Durable Assets (production)"           ="proddur_p1e",
-                              "Times Went Hungry"                     ="bedhungry_p1e",
-                              "Usual Meals per day"                   ="meals_p1e")) %>% 
+         SE) %>%
+  recode_outcome_var() %>% 
   mutate_if(is.numeric, round, 3)   
 
 
+clean_table_3_col_3_models <- table_3_col_3_models %>% 
+  filter(term == "assigned_p1" ) %>%   
+  select(outcome, estimate, SE) %>% 
+  recode_outcome_var() %>% 
+  mutate_if(is.numeric, round, 3)  
+
+
+
+  
+  
+clean_table_3_col_2_models
+clean_table_3_col_3_models
 # Write output to results
 
-write_csv(model_temp_table, "results/wings/table_3_column_2.csv")
+write_csv(clean_table_3_col_2_models, "results/wings/table_3_column_2.csv")
+write_csv(clean_table_3_col_3_models, "results/wings/table_3_column_3.csv")
 
 
+
+
+
+## Extra
+if (extra == TRUE) {
+  
+  # Bootstrap results
+  library(modelr)
+  boots <- table_3_long_df %>% 
+    filter(outcome_key == "biznow_p1e") %>%
+    bootstrap(n = 1000)  
+  
+  
+  boot_models <- boots %>% 
+    mutate(model = map(strap, fit_function, formula = group_formula))
+  
+  
+  
+  boot_models %>% 
+    unnest(model) %>% 
+    filter(term == "assigned_p1") %>% 
+    ggplot(aes(x = estimate)) +
+    geom_histogram() +
+    geom_vline(xintercept = model_temp_table %>% 
+                 filter(outcome == "Any nonfarm self-employment") %>% 
+                 select(estimate) %>% 
+                 pull(),
+               linetype = "longdash") +
+    theme_minimal()
+  
+}
