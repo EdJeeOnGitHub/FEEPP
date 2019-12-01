@@ -4,3 +4,5 @@ download.file("https://dataverse.harvard.edu/api/access/datafile/2725073",
 unzip("data/wings-data.zip",
       exdir = "data/wings-data/",
       overwrite = TRUE)
+
+system("mkdir -p results/wings")
