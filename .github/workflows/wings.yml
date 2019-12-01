@@ -13,6 +13,10 @@ jobs:
         uses: actions/checkout@master
       - name: Print pwd
         run: echo $(pwd)
+      - name: Download Files
+        run: Rscript code/download/wings-download.R
+      - name: Run Analysis
+        run: Rscript code/analysis/wings-analysis.R
       - name: Run Tests
         working-directory: ./tests/testthat
         run: Rscript test_wings.R
