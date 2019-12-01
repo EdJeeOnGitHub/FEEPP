@@ -13,8 +13,12 @@ jobs:
         uses: actions/checkout@master
       - name: Print pwd
         run: echo $(pwd)
+      - name: Download ALL Files
+        run: for file in code/download/*; do Rscript $file; done
+      - name: Run ALL Analysis
+        run: for file in code/analysis/*; do Rscript $file; done
       - name: Run Tests
         working-directory: ./tests/testthat
-        run: Rscript test_wings.R
+        run: for file in *; do Rscript $file; done
       - name: Run a one-line script
         run: echo "I think that's it!"
