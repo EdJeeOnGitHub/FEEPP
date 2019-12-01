@@ -6,7 +6,7 @@ library(testthat)
 # Whether to run extra bootstrapped explorations
 extra <- FALSE
 # Loading data
-wings_df <- read_dta("data/WINGS+Dataverse+Files/WINGS Dataverse Files/Data/WINGS.dta")
+wings_df <- read_dta("data/wings-data/WINGS Dataverse Files/Data/WINGS.dta")
 
 if(nrow(wings_df) != 6630) {
   stop("Observations missing")
