@@ -4,14 +4,15 @@
 
 Open source replication code for studies found in https://dataverse.harvard.edu/dataverse/DFEEP.
 
+Still very much WIP
 
 # Replication Summary
 
 
-## Female Leadership Raises Aspirations and Educational Attainment for Girls: A Policy Experiment in India
+## Powerful Women: Does Exposure Reduce Bias?
 WIP
 TODO: dataverse download is bugged - data are actually available  
-Paper DOI: https://dx.doi.org/10.1126%2Fscience.1212382  
+Paper DOI: https://doi.org/10.1162/qjec.2009.124.4.1497  
 Data DOI: https://doi.org/10.7910/DVN/O3UKFO
 
 - [ ] Data fully available.
