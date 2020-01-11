@@ -4,7 +4,7 @@
 
 Open source replication code for studies found in https://dataverse.harvard.edu/dataverse/DFEEP.
 
-Still very much WIP
+Still very much WIP - for now we focus on analysis and take any cleaned .dta files as is.
 
 # Replication Summary
 
