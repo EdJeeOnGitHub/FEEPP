@@ -1,10 +1,5 @@
-dir.create("data/", showWarnings = FALSE)
+source("code/download/download-functions.R")
 
-download.file("https://dataverse.harvard.edu/api/access/datafile/2725073",
-              destfile = "data/wings-data.zip")
 
-unzip("data/wings-data.zip",
-      exdir = "data/wings-data/",
-      overwrite = TRUE)
-
-dir.create("results/wings/", recursive = TRUE, showWarnings = FALSE)
+download_data(url = "https://dataverse.harvard.edu/api/access/datafile/2725073",
+              dir_name = "wings")
